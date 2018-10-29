@@ -108,6 +108,7 @@ def bam_iterator(bam, tr_dict, tss_gff, tes_gff, intron_gff, outbam, args):
             read, intron_found, gap = read_introns(df, read, introns, args)
         else:
             intron_found = False
+            gap = False
         if tss_found and tes_found and not gap:
             if strand == "+":
                 leftend = read.get_tag("ts")
