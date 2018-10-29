@@ -55,9 +55,13 @@ def del0s(bam, strand, tsv):
     """
     cmd = "bedtools genomecov -ibam {} -d -split{}".format(bam, strand + tsv)
     subprocess.run(cmd, shell=True)
-    df = pd.read_csv(tsv, sep="\t", names=["contig", "pos", "count"])
-    df = df.loc[df["count"] != 0]
-    df.to_csv(tsv, sep ="\t", index = False)
+    with open(tsv.replace(".tsv", "_no0.tsv"), "a") as outfile:
+        with open(tsv) as in_tsv:
+            for line in in_tsv:
+                if line.strip().split("\t")[2] != 0:
+                    outfile.write(line)
+    os.remove(tsv)
+    os.rename(tsv.replace(".tsv", "_no0.tsv"), tsv)
 
 def coverage_counter(outbam, out_stranded_bam):
     """
@@ -314,10 +318,6 @@ def intron_finder(read, read_start, read_end, args):
     """
     introns = ()
     counter = 0
-    
-#    introns_before = ()
-#    writer = False
-
     previous_event = 0, 0
     matches_so_far = 0
     matches_to_come = 0
@@ -383,24 +383,60 @@ def prepare_new_sam_line(read,
     else:
         read.mapping_quality = 9
     introns = intron_finder(read, read_start, read_end, args)
-    l3_dict = put_in_dict(adapter_sum, "l3", "correct", l3_dict, contig, read_start)
-    r3_dict = put_in_dict(adapter_sum, "r3", "correct", r3_dict, contig, read_end)
-    l5_dict = put_in_dict(adapter_sum, "l5", "correct", l5_dict, contig, read_start)
-    r5_dict = put_in_dict(adapter_sum, "r5", "correct", r5_dict, contig, read_end)
+    l3_dict = put_in_dict(adapter_sum,
+                          "l3",
+                          "correct",
+                          l3_dict,
+                          contig,
+                          read_start)
+    r3_dict = put_in_dict(adapter_sum,
+                          "r3",
+                          "correct",
+                          r3_dict,
+                          contig,
+                          read_end)
+    l5_dict = put_in_dict(adapter_sum,
+                          "l5",
+                          "correct",
+                          l5_dict,
+                          contig,
+                          read_start)
+    r5_dict = put_in_dict(adapter_sum,
+                          "r5",
+                          "correct",
+                          r5_dict,
+                          contig,
+                          read_end)
     if introns:
         for intron in introns:
             if (contig, intron) in introns_dict:
                 introns_dict[contig, intron] += 1
             else:
                 introns_dict[contig, intron] = 1
-    tsl3_dict = put_in_dict(adapter_sum, "l3", "potential template switching",
-                            tsl3_dict, contig, read_start)
-    tsr3_dict = put_in_dict(adapter_sum, "r3", "potential template switching",
-                            tsr3_dict, contig, read_end)
-    tsl5_dict = put_in_dict(adapter_sum, "l5", "potential template switching",
-                            tsl5_dict, contig, read_start)
-    tsr5_dict = put_in_dict(adapter_sum, "r5", "potential template switching",
-                            tsr5_dict, contig, read_end)
+    tsl3_dict = put_in_dict(adapter_sum,
+                            "l3",
+                            "potential template switching",
+                            tsl3_dict,
+                            contig,
+                            read_start)
+    tsr3_dict = put_in_dict(adapter_sum,
+                            "r3",
+                            "potential template switching",
+                            tsr3_dict,
+                            contig,
+                            read_end)
+    tsl5_dict = put_in_dict(adapter_sum,
+                            "l5",
+                            "potential template switching",
+                            tsl5_dict,
+                            contig,
+                            read_start)
+    tsr5_dict = put_in_dict(adapter_sum,
+                            "r5",
+                            "potential template switching",
+                            tsr5_dict,
+                            contig,
+                            read_end)
     read.set_tag("re", read_end, "i")
     read.set_tag("l3", ",".join((str(i) for i in adapter_sum.get("l3"))), "Z")
     read.set_tag("r3", ",".join((str(i) for i in adapter_sum.get("r3"))), "Z")
