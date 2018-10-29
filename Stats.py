@@ -48,7 +48,8 @@ def coverage(pos_list, args, contig):
     """
     Calculates average coverages from a given distance for a list of positions
     """
-    cov = pd.read_csv(args.coverage_file, sep = "\t")
+    cols = ["contig", "pos", "count"]
+    cov = pd.read_csv(args.coverage_file, sep = "\t", names= cols)
     cov = cov.loc[cov.contig == contig]
     cov["pos"] = cov["pos"].apply(int)
     cov["count"] = cov["count"].apply(int)
