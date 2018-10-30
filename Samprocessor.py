@@ -58,7 +58,7 @@ def del0s(bam, strand, tsv):
     with open(tsv.replace(".tsv", "_no0.tsv"), "a") as outfile:
         with open(tsv) as in_tsv:
             for line in in_tsv:
-                if line.strip().split("\t")[2] != 0:
+                if line.strip().split("\t")[2] != "0":
                     outfile.write(line)
     os.remove(tsv)
     os.rename(tsv.replace(".tsv", "_no0.tsv"), tsv)
