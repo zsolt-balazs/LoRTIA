@@ -596,7 +596,6 @@ def sam_iterator(args):
     out_writer(tsr5_dict, args.prefix, "ts_r5")
     out_writer(introns_dict, args.prefix, "in")
 
-
 def Samprocessor(args):
     """
     Sets argument types and processes the sam file.
@@ -605,9 +604,9 @@ def Samprocessor(args):
         os.mkdir(args.out_path)
     in_prefix = os.path.basename(args.in_file)
     args.prefix = "{}/{}".format(args.out_path,
-                                 in_prefix[:len(args.in_prefix) - 4])
+                                 in_prefix[:len(in_prefix) - 4])
     args.out_file = "{}_out.sam".format(args.prefix)
-    
+
     input_sorter(args.in_file, args.prefix)
     sam_iterator(args)
     output_creator(args.out_file)
