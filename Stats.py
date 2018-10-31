@@ -293,6 +293,7 @@ def get_score(scores, args):
     rscores = []
     score = 0
     while pos <= 2*args.shs_for_ts:
+        print(pos, scores)
         score += scores[pos - 1]
         rscores.append(score)
         pos += 1
@@ -342,6 +343,7 @@ def intron_seq(df, args, contig):
                 right = row["right"] - 2
                 leftseq = seq_record.seq[left - ts:left + ts]
                 rightseq = seq_record.seq[right - ts:right + ts]
+                print(contig, row["left"], row["right"])
                 ts_score = align(leftseq, rightseq, args)
                 is_ts = ts_score >= args.match_score * ts
                 is_ts_list.append(is_ts)
