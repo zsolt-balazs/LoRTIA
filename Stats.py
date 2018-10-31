@@ -49,15 +49,17 @@ def coverage(pos_list, args, contig):
     Calculates average coverages from a given distance for a list of positions
     """
     cols = ["contig", "pos", "count"]
+    print(args.distance, args.feature)
     cov = pd.read_csv(args.coverage_file, sep = "\t", names= cols)
     cov = cov.loc[cov.contig == contig]
-    cov["pos"] = cov.pos.astype(int)
-    cov["count"] = cov.count.astype(int)
+    cov["pos"] = cov["pos"].astype(int)
+    cov["count"] = cov["count"].astype(int)
     cov.set_index("pos", drop=True, inplace=True)
     cov_dict = cov.to_dict()["count"]
     coverages = []
     for pos in pos_list:
         to_avg = []
+        print(pos)
         if args.distance > args.cov_sample:
             for position in range(pos + args.distance - args.cov_sample,
                                   pos + args.distance):
@@ -126,8 +128,8 @@ def Stats(args):
         strand = -1
     else:
         strand = 1
-    args.distance = args.distance * strand
-    args.cov_sample = args.cov_sample * strand
+    args.distance = abs(args.distance) * strand
+    args.cov_sample = abs(args.cov_sample) * strand
     if os.stat(args.feature_file).st_size == 0:
         print("Feature file {} is empty. There is nothing to do here.".format(
               args.feature_file))
@@ -204,7 +206,7 @@ def contig_ends(df, args, contig):
     """
     Processes the dataframe for one contig looking for TSSs or TESs.
     """
-    df["pos"] = df.pos.astype(int)
+    df["pos"] = df["pos"].astype(int)
     if args.feature == "l5" or args.feature == "l3":
     # This makes sure that the leftmost position is taken for each left feature
         df = df.sort_values(by = "pos")
@@ -362,11 +364,11 @@ def contig_introns(df, args, contig):
     Processes the dataframe for one contig looking for introns.
     """
     df[["left", "right"]] = df["pos"].apply(pd.Series)
-    df["left"] = df.left.astype(int)
-    df["right"] = df.right.astype(int)
+    df["left"] = df["left"].astype(int)
+    df["right"] = df["right"].astype(int)
     df["rcov"] = coverage(df["right"], args, contig)
-    args.distance = args.distance * -1
-    args.cov_sample = args.cov_sample * -1
+    args.distance = abs(args.distance) * -1
+    args.cov_sample = abs(args.cov_sample) * -1
     df["lcov"] = coverage(df["left"], args, contig)
     df["coverage"] = (df["lcov"] + df["rcov"]) / 2
     df["ratio"] = df["count"] / df["coverage"]
