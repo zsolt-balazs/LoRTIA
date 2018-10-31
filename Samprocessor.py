@@ -605,7 +605,7 @@ def Samprocessor(args):
         os.mkdir(args.out_path)
     in_prefix = os.path.basename(args.in_file)
     args.prefix = "{}/{}".format(args.out_path,
-                                 in_prefix[:len(args.in_file) - 4])
+                                 in_prefix[:len(args.in_prefix) - 4])
     args.out_file = "{}_out.sam".format(args.prefix)
     
     input_sorter(args.in_file, args.prefix)
