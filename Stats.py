@@ -99,7 +99,7 @@ def find_features(args):
     for contig in contig_set:
         current_df = df.loc[df.contig == contig]
         if args.feature == "in":
-            current_df = contig_introns(df, args, contig)
+            current_df = contig_introns(current_df, args, contig)
         else:
             current_df = contig_ends(current_df, args, contig)
         if len(new_df) != 0:
@@ -293,7 +293,6 @@ def get_score(scores, args):
     rscores = []
     score = 0
     while pos <= 2*args.shs_for_ts:
-        print(pos, scores)
         score += scores[pos - 1]
         rscores.append(score)
         pos += 1
@@ -343,7 +342,6 @@ def intron_seq(df, args, contig):
                 right = row["right"] - 2
                 leftseq = seq_record.seq[left - ts:left + ts]
                 rightseq = seq_record.seq[right - ts:right + ts]
-                print(contig, row["left"], row["right"])
                 ts_score = align(leftseq, rightseq, args)
                 is_ts = ts_score >= args.match_score * ts
                 is_ts_list.append(is_ts)
@@ -379,7 +377,8 @@ def contig_introns(df, args, contig):
     qual_num, df["is_qualified"] = check_if_qualified(df,
                                                       args.minimum,
                                                       args.ratio)
-    df["consensus"], df["strand"] = check_consensus(df["left2"], df["right2"])
+    df["consensus"], df["strand"] = check_consensus(df["left2"].to_list(),
+                                                    df["right2"].to_list())
     return df
 
 
