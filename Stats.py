@@ -49,7 +49,6 @@ def coverage(pos_list, args, contig):
     Calculates average coverages from a given distance for a list of positions
     """
     cols = ["contig", "pos", "count"]
-    print(args.distance, args.feature)
     cov = pd.read_csv(args.coverage_file, sep = "\t", names= cols)
     cov = cov.loc[cov.contig == contig]
     cov["pos"] = cov["pos"].astype(int)
@@ -59,7 +58,6 @@ def coverage(pos_list, args, contig):
     coverages = []
     for pos in pos_list:
         to_avg = []
-        print(pos)
         if args.distance > args.cov_sample:
             for position in range(pos + args.distance - args.cov_sample,
                                   pos + args.distance):
@@ -122,6 +120,7 @@ def Stats(args):
     """
     Sets argument types and runs stat functions for features.
     """
+    print("Calculating feature statistics...")
     if not args.feature:
         args.feature = args.feature_file[-6:-4]
     if args.feature == "r5" or args.feature == "l3":
