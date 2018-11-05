@@ -76,16 +76,13 @@ def check_if_qualified(df, minimum, ratio):
     Checks whether the feature position satisfies the minimum count and minimum
     ratio of coverage requirements.
     """
-    qual_num = 0
     qual_list = []
     for index, row in df.iterrows():
         is_qual = (row["count"] >= minimum
                    and row["ratio"] >= ratio
                    and row["is_picked"])
-        if is_qual:
-            qual_num += 1
         qual_list.append(is_qual)
-    return qual_num, qual_list
+    return qual_list
 
 def find_features(args):
     """
@@ -139,18 +136,6 @@ def Stats(args):
 ###############################################################################
 ###                             End functions                               ###
 ###############################################################################
-
-def check_if_poisson(df):
-    """
-    Determines whether the feature is significantly more abundant than
-    expected, presuming a Poisson distribution.
-    """
-    is_poisson_list = []
-    for index, row in df.iterrows():
-        is_poisson =  row["is_qualified"] and row["poisp"] <0.05 #alpha
-        is_poisson_list.append(is_poisson)
-    return is_poisson_list
-
 
 def pick_from_greatests(dictionary, wobble):
     """
@@ -218,9 +203,7 @@ def contig_ends(df, args, contig):
     greatests_dict = dict(zip(df["pos"], df["is_greatest"]))
     df["is_picked"] = pick_from_greatests(greatests_dict, args.wobble)
     df["ratio"] = df["count"] / df["coverage"]
-    qual_num, df["is_qualified"] = check_if_qualified(df,
-                                                      args.minimum,
-                                                      args.ratio)
+    df["is_qualified"] = check_if_qualified(df, args.minimum, args.ratio)
     df["poisp"] = (1 - poisson.cdf(df["count"], df["average"]))
     return df
 
@@ -350,12 +333,15 @@ def intron_seq(df, args, contig):
                 rseq_list.append(rightseq)
                 l2_list.append(leftseq[ts:ts + 2])
                 r2_list.append(rightseq[ts - 2:ts])
-    df["is_potential_ts"] = is_ts_list
-    df["leftseq"] = lseq_list
-    df["rightseq"] = rseq_list
-    df["left2"] = l2_list
-    df["right2"] = r2_list
-    df["ts_score"] = ts_list
+    try:
+        df["is_potential_ts"] = is_ts_list
+        df["leftseq"] = lseq_list
+        df["rightseq"] = rseq_list
+        df["left2"] = l2_list
+        df["right2"] = r2_list
+        df["ts_score"] = ts_list
+    except ValueError:
+        print("Given reference file does not contain contigs from the references used for mapping.")
     return df
 
 def contig_introns(df, args, contig):
@@ -374,9 +360,7 @@ def contig_introns(df, args, contig):
     df = intron_seq(df, args, contig)
     left_right_count = list(zip(df["left"], df["right"], df["count"]))
     df["is_picked"] = intron_picker(left_right_count, args)
-    qual_num, df["is_qualified"] = check_if_qualified(df,
-                                                      args.minimum,
-                                                      args.ratio)
+    df["is_qualified"] = check_if_qualified(df, args.minimum, args.ratio)
     df["consensus"], df["strand"] = check_consensus(df["left2"].to_list(),
                                                     df["right2"].to_list())
     return df

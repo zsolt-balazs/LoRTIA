@@ -45,14 +45,14 @@ def Gff_creator(args):
     if not args.output_gff:
         args.output_gff = "{}_{}.gff3".format(args.prefix, args.feature)
     cols = ["contig",
-               "source",
-               "feature",
-               "start",
-               "end",
-               "score",
-               "strand",
-               "frame",
-               "info"]
+            "source",
+            "feature",
+            "start",
+            "end",
+            "score",
+            "strand",
+            "frame",
+            "info"]
     new_df = pd.DataFrame(columns=cols)
     if args.feature == "intron":
         file = "{}_{}.tsv".format(args.prefix, args.feature)
