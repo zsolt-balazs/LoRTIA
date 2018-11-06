@@ -341,7 +341,8 @@ def intron_seq(df, args, contig):
         df["right2"] = r2_list
         df["ts_score"] = ts_list
     except ValueError:
-        print("Given reference file does not contain contigs from the references used for mapping.")
+        print("The specified reference file does not contain contigs from the\
+              references used for mapping.")
     return df
 
 def contig_introns(df, args, contig):
@@ -361,8 +362,8 @@ def contig_introns(df, args, contig):
     left_right_count = list(zip(df["left"], df["right"], df["count"]))
     df["is_picked"] = intron_picker(left_right_count, args)
     df["is_qualified"] = check_if_qualified(df, args.minimum, args.ratio)
-    df["consensus"], df["strand"] = check_consensus(df["left2"].to_list(),
-                                                    df["right2"].to_list())
+    df["consensus"], df["strand"] = check_consensus(list(df["left2"]),
+                                                    list(df["right2"]))
     return df
 
 

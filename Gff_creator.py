@@ -77,6 +77,7 @@ def Gff_creator(args):
             new_df = new_df.loc[new_df["info"] < alpha]
     new_df = new_df.sort_values(by=['end'])
     new_df = new_df.sort_values(by=['start'])
+    new_df = new_df.sort_values(by=['contig'])
     new_df.to_csv(args.output_gff, sep="\t", index = False, header = False)
 
 
