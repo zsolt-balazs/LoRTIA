@@ -117,7 +117,7 @@ def Stats(args):
     """
     Sets argument types and runs stat functions for features.
     """
-    print("Calculating feature statistics...")
+    print("Calculating {} feature statistics...".format(args.feature))
     if not args.feature:
         args.feature = args.feature_file[-6:-4]
     if args.feature == "r5" or args.feature == "l3":
@@ -321,8 +321,8 @@ def intron_seq(df, args, contig):
             r2_list = []
             ts_list = []
             for index, row in df.iterrows():
-                left = row["left"] - 1
-                right = row["right"] - 2
+                left = row["left"]
+                right = row["right"] - 1
                 leftseq = seq_record.seq[left - ts:left + ts]
                 rightseq = seq_record.seq[right - ts:right + ts]
                 ts_score = align(leftseq, rightseq, args)

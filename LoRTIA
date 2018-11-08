@@ -145,15 +145,26 @@ parser.add_argument("--first_exon",
                     dest="first_exon",
                     help="Alignment ends are often placed far away from \
                     from the rest of the read if the adapter maps to a \
-                    nearby part of the genome. As these positions do not \
-                    denote the real end of the transcripts, they will not \
-                    be considered as correct adapters. The length of the \
-                    'first exon' that is required for 'correct' adapters \
-                    can be set by this parameter. The default is 30.",
+                    nearby part of the genome. This option sets the length\
+                    of the first exon, under which the matching part of\
+                    of the alignment should be checked for the presence of\
+                    the adapters. The default is 30.",
                     type=int,
                     metavar="[integer]",
-                    default=30,
-                    required=False)
+                    default=30)
+parser.add_argument("--match_in_first", 
+                    dest="match_in_first",
+                    help="Alignment ends are often placed far away from \
+                    from the rest of the read if the adapter maps to a \
+                    nearby part of the genome. With this option, the user\
+                    can set how many nucleotides from the matching part \
+                    of the alignment should be aligned to the adapter \
+                    if at least half of the nucleotides match to the \
+                    adapter, the exon will be considered false. The \
+                    default is 15.",
+                    type=int,
+                    metavar="[integer]",
+                    default=15)
 parser.add_argument("--insert_before_intron", 
                     dest="insert_before_intron",
                     help="The maximum allowed insert length immediately \

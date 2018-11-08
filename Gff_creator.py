@@ -30,8 +30,8 @@ def line_intron(df, new_df, feature):
             new_df.loc[i] = [row["contig"],
                              "LoRTIA", 
                              feature,
-                             row["left"],
-                             row["right"] - 2,
+                             row["left"] + 1,
+                             row["right"] - 1,
                              row["count"],
                              row["strand"],
                              ".",
@@ -42,6 +42,7 @@ def Gff_creator(args):
     """
     Creates gffs from stats files.
     """
+    print("Creating {} gff file...".format(args.feature))
     if not args.output_gff:
         args.output_gff = "{}_{}.gff3".format(args.prefix, args.feature)
     cols = ["contig",
@@ -58,7 +59,7 @@ def Gff_creator(args):
         file = "{}_{}.tsv".format(args.prefix, args.feature)
         df = pd.read_csv(file, sep = "\t")
         line_intron(df, new_df, args.feature)
-        if args.force_consensus == "True":
+        if args.force_consensus:
             new_df = new_df.loc[new_df["info"] != "None"]
     else:
         if args.feature == "tss":
@@ -73,7 +74,7 @@ def Gff_creator(args):
         line_end(dfpos, new_df, args.feature, "+")
         line_end(dfneg, new_df, args.feature, "-")
         if args.significance == "poisson":
-            alpha = 0.05/len(new_df)
+            alpha = 0.05 / len(new_df)
             new_df = new_df.loc[new_df["info"] < alpha]
     new_df = new_df.sort_values(by=['end'])
     new_df = new_df.sort_values(by=['start'])
@@ -100,8 +101,8 @@ def parsing():
                         metavar="prefix")
     parser.add_argument("feature",
                         help="The type of feature for which the gff is \
-                        generated. Options include tss for transcriptional \
-                        start sites, tes for transcriptional end sites and \
+                        generated. Options include 'tss' for transcriptional \
+                        start sites, 'tes' for transcriptional end sites and \
                         'intron' for introns.",
                         metavar="feature")
     parser.add_argument("-o", "--output_gff",

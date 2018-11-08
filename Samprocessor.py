@@ -99,13 +99,13 @@ def output_creator(outsam):
 ###                           Cigar functions                               ###
 ###############################################################################
 
-def get_left_end(read_seq, cigar_list, args):
+def get_left_end(read_seq, cigar, args):
     """
     Gets the left end of the alignment, taking 'check_in_soft' number of 
     nucleotides from the softclip and check_in_match number of nucleotides
     from the mapped part.
     """
-    softleftpos = cigar_list[0][1]
+    softleftpos = cigar[0][1]
     if softleftpos > args.check_in_soft - 1:
         checkleft = softleftpos - args.check_in_soft
         cis = args.check_in_soft
@@ -113,9 +113,10 @@ def get_left_end(read_seq, cigar_list, args):
         checkleft = 0
         cis = softleftpos
     leftend_seq = read_seq[checkleft : softleftpos + args.check_in_match]
-    return leftend_seq, cis
+    left_match = read_seq[softleftpos : softleftpos + args.match_in_first]
+    return leftend_seq, cis, left_match
 
-def get_right_end(read_seq, cigar_list, args):
+def get_right_end(read_seq, cigar, args):
     """
     Gets the right end of the alignment, taking 'check_in_soft' number of 
     nucleotides from the softclip and check_in_match number of nucleotides
@@ -123,16 +124,16 @@ def get_right_end(read_seq, cigar_list, args):
     """
 # here I first calculate the length of the read and I
 # substract the length of the closing softclip
-    softrightpos = (len(read_seq) - cigar_list[-1][1])
-    if args.check_in_soft < cigar_list[-1][1] - 1:
+    softrightpos = (len(read_seq) - cigar[-1][1])
+    if args.check_in_soft < cigar[-1][1] - 1:
         checkright = softrightpos + args.check_in_soft
         cis = args.check_in_soft
     else:
         checkright = len(read_seq)
-        cis = cigar_list[-1][1]
+        cis = cigar[-1][1]
     rightend_seq = read_seq[softrightpos - args.check_in_match : checkright]
-    return rightend_seq, cis
-
+    right_match = read_seq[softrightpos - args.match_in_first : softrightpos]
+    return rightend_seq, cis, right_match
 
 ###############################################################################
 ###                             Adapter functions                           ###
@@ -160,7 +161,12 @@ def pos_wo_gap(alignment, p):
     pos_wo_gap = alignment[p] - alignment[1][:alignment[p]].count("-")
     return pos_wo_gap
 
-def in_place_checker(alignments, cigar_info, args, check_in_soft):
+def in_place_checker(alignments,
+                     cigar_info,
+                     args,
+                     check_in_soft,
+                     matchseq,
+                     adapter):
     """
     Checks whether the adapter is no further than nts away from the start of
     the alignment.
@@ -190,10 +196,14 @@ def in_place_checker(alignments, cigar_info, args, check_in_soft):
                 else:
                     break
             elif event_type == 3:
-                adapter_info = (alignment[2],
-                                pos_wo_gap(alignment, 3),
-                                pos_wo_gap(alignment, 4),
-                                "false exon")
+                match_adapter = adapter_aligner(matchseq, adapter, args)
+                if match_adapter:
+                    score_limit = args.match_in_first * 0.5 * args.match_score
+                    if match_adapter[0][2] >= score_limit:
+                        adapter_info = (alignment[2],
+                                        pos_wo_gap(alignment, 3),
+                                        pos_wo_gap(alignment, 4),
+                                        "false exon")
                 break
         for alignment in alignments:
             if pos_wo_gap(alignment, 4) in range(ts, soft_match + 1):
@@ -209,7 +219,8 @@ def get_adapter_info(sequence,
                      score_limit,
                      cigar_info,
                      args,
-                     check_in_soft):
+                     check_in_soft,
+                     matchseq):
     """
     Sends sequence to the aligner, and gathers adapter information.
     """
@@ -224,7 +235,9 @@ def get_adapter_info(sequence,
             adapter_info = in_place_checker(alignments,
                                             cigar_info,
                                             args,
-                                            check_in_soft)
+                                            check_in_soft,
+                                            matchseq,
+                                            adapter)
         else:
             adapter_info = (alignments[0][2],
                             pos_wo_gap(alignments[0], 3),
@@ -238,37 +251,40 @@ def adapter_checker(read, args):
     """
     Retrieves the end sequences and sorts adapter information for each end.
     """
-    cigar_list = read.cigartuples
+    cigar = read.cigartuples
     seq = read.query_sequence
-    leftend, check_in_softl = get_left_end(seq, cigar_list, args)
-    rightend, check_in_softr = get_right_end(seq, cigar_list, args)
-    left_cigar_info = cigar_list
-    right_cigar_info = list(cigar_list)[::-1]
-
+    leftend, check_in_softl, left_match = get_left_end(seq, cigar, args)
+    rightend, check_in_softr, right_match = get_right_end(seq, cigar, args)  
+    left_cigar_info = cigar
+    right_cigar_info = list(cigar)[::-1]
     three_left = get_adapter_info(Seq(leftend).complement(),
                                   args.three_adapter,
                                   args.three_score,
                                   left_cigar_info,
                                   args,
-                                  check_in_softl)
+                                  check_in_softl,
+                                  left_match)
     three_right = get_adapter_info(rightend[::-1],
                                    args.three_adapter,
                                    args.three_score,
                                    right_cigar_info,
                                    args,
-                                   check_in_softr)
+                                   check_in_softr,
+                                   right_match)
     five_left = get_adapter_info(leftend,
                                  args.five_adapter,
                                  args.five_score,
                                  left_cigar_info,
                                  args,
-                                 check_in_softl)
+                                 check_in_softl,
+                                 left_match)
     five_right = get_adapter_info(Seq(rightend).reverse_complement(),
                                   args.five_adapter,
                                   args.five_score,
                                   right_cigar_info,
                                   args,
-                                  check_in_softr)
+                                  check_in_softr,
+                                  right_match)
     return {"l3": three_left,
             "r3": three_right,
             "l5": five_left,
@@ -321,29 +337,36 @@ def intron_finder(read, read_start, read_end, args):
     previous_event = 0, 0
     matches_so_far = 0
     matches_to_come = 0
+    is_left_false = ((read.get_tag("l5").split(",")[3] == "false exon") or 
+                     (read.get_tag("l3").split(",")[3] == "false exon"))
     for event_type, event_count in read.cigartuples:
         # event coding: M:0, I:1, D:2, N:3, S:4, H:5
         previous_is_insert = (previous_event[0] == 1 
                               and previous_event[1]
                               > args.insert_before_intron)
         # we set this so that triple-chimeric reads do not appear as intronic
-        if (event_type == 3
-                and not previous_is_insert
-                and matches_so_far > args.first_exon):
-            intron_start = read_start
+        if event_type == 3:
+            intron_start = read_start - 1
             for element_type, element_count in read.cigartuples[:counter]:
-                if element_type == 0 or element_type == 2 or element_type == 3:
+                if element_type in [0, 2, 3]:
                     intron_start += element_count
             intron_end = intron_start + event_count + 1
             # we added one, because we actually want the exon start
             introns += (intron_start, intron_end),
             matches_to_come = 0
+            if (previous_is_insert 
+                or (is_left_false and (matches_so_far < args.first_exon))):
+                read.set_tag("ga", ",".join((str(i) for i in introns)), "Z")
+                introns = ()
         elif event_type == 0:
             matches_so_far += event_count
             matches_to_come += event_count
         counter += 1
         previous_event = event_type, event_count
-    if matches_to_come < args.first_exon:
+    is_right_false = ((read.get_tag("r5").split(",")[3] == "false exon") or 
+                      (read.get_tag("r3").split(",")[3] == "false exon"))
+    if matches_to_come < args.first_exon and is_right_false:
+        read.set_tag("ga", ",".join(introns[-1]), "Z")
         introns = introns[:-1]
     return introns
 
@@ -382,7 +405,6 @@ def prepare_new_sam_line(read,
         read.mapping_quality = 0
     else:
         read.mapping_quality = 9
-    introns = intron_finder(read, read_start, read_end, args)
     l3_dict = put_in_dict(adapter_sum,
                           "l3",
                           "correct",
@@ -407,12 +429,6 @@ def prepare_new_sam_line(read,
                           r5_dict,
                           contig,
                           read_end)
-    if introns:
-        for intron in introns:
-            if (contig, intron) in introns_dict:
-                introns_dict[contig, intron] += 1
-            else:
-                introns_dict[contig, intron] = 1
     tsl3_dict = put_in_dict(adapter_sum,
                             "l3",
                             "potential template switching",
@@ -442,6 +458,13 @@ def prepare_new_sam_line(read,
     read.set_tag("r3", ",".join((str(i) for i in adapter_sum.get("r3"))), "Z")
     read.set_tag("l5", ",".join((str(i) for i in adapter_sum.get("l5"))), "Z")
     read.set_tag("r5", ",".join((str(i) for i in adapter_sum.get("r5"))), "Z")
+    introns = intron_finder(read, read_start, read_end, args)
+    if introns:
+        for intron in introns:
+            if (contig, intron) in introns_dict:
+                introns_dict[contig, intron] += 1
+            else:
+                introns_dict[contig, intron] = 1
     read.set_tag("in", ",".join((str(i) for i in introns)), "Z")
     readline = read.to_string()
     out_appender("".join((readline,"\n")), args.out_file)
@@ -747,14 +770,26 @@ def parsing():
                         dest="first_exon",
                         help="Alignment ends are often placed far away from \
                         from the rest of the read if the adapter maps to a \
-                        nearby part of the genome. As these positions do not \
-                        denote the real end of the transcripts, they will not \
-                        be considered as correct adapters. The length of the \
-                        'first exon' that is required for 'correct' adapters \
-                        can be set by this parameter. The default is 30.",
+                        nearby part of the genome. This option sets the length\
+                        of the first exon, under which the matching part of\
+                        of the alignment should be checked for the presence of\
+                        the adapters. The default is 30.",
                         type=int,
                         metavar="[integer]",
                         default=30)
+    parser.add_argument("--match_in_first", 
+                        dest="match_in_first",
+                        help="Alignment ends are often placed far away from \
+                        from the rest of the read if the adapter maps to a \
+                        nearby part of the genome. With this option, the user\
+                        can set how many nucleotides from the matching part \
+                        of the alignment should be aligned to the adapter \
+                        if at least half of the nucleotides match to the \
+                        adapter, the exon will be considered false. The \
+                        default is 15.",
+                        type=int,
+                        metavar="[integer]",
+                        default=15)
     parser.add_argument("--insert_before_intron", 
                         dest="insert_before_intron",
                         help="The maximum allowed insert length immediately \

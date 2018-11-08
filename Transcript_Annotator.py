@@ -20,48 +20,48 @@ def read_ends(df, read, end, args, feature):
         read.set_tag(feature[:-1], -1, "i")
     return read, feature_found
 
-def intron_gff_iterator(df, intron, intron_found, real_introns, gap, args):
+def intron_gff_iterator(df, intron, intron_found, real_introns, read, args):
     """
     Iterates over the intron.gff3 and checks whether the given deletion is an
     intron.
     """
     df = df.loc[df["start"] > intron[0] - args.wobble - 1]
     for index, row in df.iterrows():
-        if intron[0] == (row["start"]) and intron[1] == (row["end"] + 2):
+        intron_found = False
+        if intron[0] == (row["start"]) -1 and intron[1] == (row["end"] + 1):
             intron_found = True
             real_introns += intron
             break
-    if not intron_found and ((intron[1] - intron[0]) > args.gap):
-            gap = True
-    return real_introns, intron_found, gap
+        if (not intron_found) and ((intron[1] - intron[0]) > args.gap):
+            read.set_tag("ga", str(intron), "Z")
+    return real_introns, intron_found
 
 def read_introns(df, read, introns, args):
     """
     Checks whether the read has accepted introns.
     """
     intron_found = False
-    gap = False
     real_introns= ()
     if isinstance(introns[0], int):
-        real_introns, intron_found, gap = intron_gff_iterator(df,
-                                                              introns,
-                                                              intron_found,
-                                                              real_introns,
-                                                              gap,
-                                                              args)
+        real_introns, intron_found = intron_gff_iterator(df,
+                                                         introns,
+                                                         intron_found,
+                                                         real_introns,
+                                                         read,
+                                                         args)
     else:
         for intron in introns:
-            real_introns, intron_found, gap = intron_gff_iterator(df,
-                                                                  intron,
-                                                                  intron_found,
-                                                                  real_introns,
-                                                                  gap,
-                                                                  args)
+            real_introns, intron_found = intron_gff_iterator(df,
+                                                             intron,
+                                                             intron_found,
+                                                             real_introns,
+                                                             read,
+                                                             args)
     if intron_found:
         read.set_tag("in", str(real_introns), "Z")
     else:
         read.set_tag("in", None)
-    return read, intron_found, gap
+    return read, intron_found
 
 def bam_iterator(bam, tr_dict, tss_gff, tes_gff, intron_gff, outbam, args):
     """
@@ -105,9 +105,13 @@ def bam_iterator(bam, tr_dict, tss_gff, tes_gff, intron_gff, outbam, args):
             introns = literal_eval(read.get_tag("in"))
             df = intron_gff.loc[(intron_gff["strand"] == strand)
                                 & (intron_gff["contig"] == contig)]
-            read, intron_found, gap = read_introns(df, read, introns, args)
+            read, intron_found = read_introns(df, read, introns, args)
         else:
             intron_found = False
+        try:
+            if read.get_tag("ga"):
+                gap = True
+        except:
             gap = False
         if tss_found and tes_found and not gap:
             if strand == "+":
@@ -174,7 +178,7 @@ def create_gff(tr_dict, tr_gff, args):
                                      ".",
                                      "Parent=" + str(key)]
                     if len(intron) > 2:
-                        for i in range(2, len(intron))[::2]:
+                        for i in range(1, len(intron)-1)[::2]:
                             l = len(tr_gff)
                             tr_gff.loc[l] = [contig,
                                              "LoRTIA",
@@ -206,7 +210,7 @@ def create_gff(tr_dict, tr_gff, args):
                                      ".",
                                      "Parent=" + str(key)]
                     if len(intron) > 2:
-                        for i in range(2, len(intron))[::2]:
+                        for i in range(1, len(intron)-1)[::2]:
                             l = len(tr_gff)
                             tr_gff.loc[l] = [contig,
                                              "LoRTIA",
@@ -237,6 +241,7 @@ def annotate_tr(args):
     """
     Sets argument types and runs the bam_iterator
     """
+    print("Annotating transcripts...")
     cols = ["contig",
             "source",
             "feature",
