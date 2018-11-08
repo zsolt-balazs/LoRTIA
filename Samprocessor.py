@@ -366,7 +366,7 @@ def intron_finder(read, read_start, read_end, args):
     is_right_false = ((read.get_tag("r5").split(",")[3] == "false exon") or 
                       (read.get_tag("r3").split(",")[3] == "false exon"))
     if matches_to_come < args.first_exon and is_right_false:
-        read.set_tag("ga", ",".join(introns[-1]), "Z")
+        read.set_tag("ga", ",".join(str(introns[-1])), "Z")
         introns = introns[:-1]
     return introns
 
