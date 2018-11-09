@@ -263,14 +263,14 @@ def adapter_checker(read, args):
                                   left_cigar_info,
                                   args,
                                   check_in_softl,
-                                  left_match)
+                                  Seq(left_match).complement())
     three_right = get_adapter_info(rightend[::-1],
                                    args.three_adapter,
                                    args.three_score,
                                    right_cigar_info,
                                    args,
                                    check_in_softr,
-                                   right_match)
+                                   right_match[::-1])
     five_left = get_adapter_info(leftend,
                                  args.five_adapter,
                                  args.five_score,
@@ -284,7 +284,7 @@ def adapter_checker(read, args):
                                   right_cigar_info,
                                   args,
                                   check_in_softr,
-                                  right_match)
+                                  Seq(right_match).reverse_complement())
     return {"l3": three_left,
             "r3": three_right,
             "l5": five_left,
@@ -365,7 +365,7 @@ def intron_finder(read, read_start, read_end, args):
         previous_event = event_type, event_count
     is_right_false = ((read.get_tag("r5").split(",")[3] == "false exon") or 
                       (read.get_tag("r3").split(",")[3] == "false exon"))
-    if matches_to_come < args.first_exon and is_right_false:
+    if matches_to_come < args.first_exon and is_right_false and introns:
         read.set_tag("ga", str(introns[-1]), "Z")
         introns = introns[:-1]
     return introns
