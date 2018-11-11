@@ -337,8 +337,8 @@ def intron_finder(read, read_start, read_end, args):
     previous_event = 0, 0
     matches_so_far = 0
     matches_to_come = 0
-    is_left_false = ((read.get_tag("l5").split(",")[3] == "false exon") or 
-                     (read.get_tag("l3").split(",")[3] == "false exon"))
+    is_left_false = ((read.get_tag("l5").split(",")[3] != "correct") or 
+                     (read.get_tag("l3").split(",")[3] != "correct"))
     for event_type, event_count in read.cigartuples:
         # event coding: M:0, I:1, D:2, N:3, S:4, H:5
         previous_is_insert = (previous_event[0] == 1 
@@ -363,8 +363,8 @@ def intron_finder(read, read_start, read_end, args):
             matches_to_come += event_count
         counter += 1
         previous_event = event_type, event_count
-    is_right_false = ((read.get_tag("r5").split(",")[3] == "false exon") or 
-                      (read.get_tag("r3").split(",")[3] == "false exon"))
+    is_right_false = ((read.get_tag("r5").split(",")[3] != "correct") or 
+                      (read.get_tag("r3").split(",")[3] != "correct"))
     if matches_to_come < args.first_exon and is_right_false and introns:
         read.set_tag("ga", str(introns[-1]), "Z")
         introns = introns[:-1]
