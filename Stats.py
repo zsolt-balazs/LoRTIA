@@ -120,7 +120,7 @@ def Stats(args):
     print("Calculating {} feature statistics...".format(args.feature))
     if not args.feature:
         args.feature = args.feature_file[-6:-4]
-    if args.feature == "r5" or args.feature == "l3":
+    if args.feature == "r5" or args.feature == "r3":
         strand = -1
     else:
         strand = 1
