@@ -340,9 +340,10 @@ def intron_seq(df, args, contig):
         df["left2"] = l2_list
         df["right2"] = r2_list
         df["ts_score"] = ts_list
-    except ValueError:
-        print("The specified reference file does not contain contigs from the\
-              references used for mapping.")
+    except:
+        print("ERROR: The specified reference file does not contain contigs \
+              from the references used for mapping. Supply the same reference\
+              that was used for the mapping and try again.")
     return df
 
 def contig_introns(df, args, contig):
