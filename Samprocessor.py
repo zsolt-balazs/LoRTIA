@@ -105,15 +105,20 @@ def get_left_end(read_seq, cigar, args):
     nucleotides from the softclip and check_in_match number of nucleotides
     from the mapped part.
     """
-    softleftpos = cigar[0][1]
-    if softleftpos > args.check_in_soft - 1:
-        checkleft = softleftpos - args.check_in_soft
-        cis = args.check_in_soft
+    if cigar[0][0] in [4, 5]:
+        softleftpos = cigar[0][1]
+        if softleftpos > args.check_in_soft - 1:
+            checkleft = softleftpos - args.check_in_soft
+            cis = args.check_in_soft
+        else:
+            checkleft = 0
+            cis = softleftpos
+        leftend_seq = read_seq[checkleft:softleftpos + args.check_in_match]
+        left_match = read_seq[softleftpos:softleftpos + args.match_in_first]
     else:
-        checkleft = 0
-        cis = softleftpos
-    leftend_seq = read_seq[checkleft : softleftpos + args.check_in_match]
-    left_match = read_seq[softleftpos : softleftpos + args.match_in_first]
+        leftend_seq = "no softclip"
+        cis = 0
+        left_match = 0
     return leftend_seq, cis, left_match
 
 def get_right_end(read_seq, cigar, args):
@@ -124,15 +129,20 @@ def get_right_end(read_seq, cigar, args):
     """
 # here I first calculate the length of the read and I
 # substract the length of the closing softclip
-    softrightpos = (len(read_seq) - cigar[-1][1])
-    if args.check_in_soft < cigar[-1][1] - 1:
-        checkright = softrightpos + args.check_in_soft
-        cis = args.check_in_soft
+    if cigar[-1][0] in [4, 5]:
+        softrightpos = (len(read_seq) - cigar[-1][1])
+        if args.check_in_soft < cigar[-1][1] - 1:
+            checkright = softrightpos + args.check_in_soft
+            cis = args.check_in_soft
+        else:
+            checkright = len(read_seq)
+            cis = cigar[-1][1]
+        rightend_seq = read_seq[softrightpos - args.check_in_match:checkright]
+        right_match = read_seq[softrightpos - args.match_in_first:softrightpos]
     else:
-        checkright = len(read_seq)
-        cis = cigar[-1][1]
-    rightend_seq = read_seq[softrightpos - args.check_in_match : checkright]
-    right_match = read_seq[softrightpos - args.match_in_first : softrightpos]
+        rightend_seq = "no softclip"
+        cis = 0
+        right_match = 0
     return rightend_seq, cis, right_match
 
 ###############################################################################
@@ -257,34 +267,42 @@ def adapter_checker(read, args):
     rightend, check_in_softr, right_match = get_right_end(seq, cigar, args)  
     left_cigar_info = cigar
     right_cigar_info = list(cigar)[::-1]
-    three_left = get_adapter_info(Seq(leftend).complement(),
-                                  args.three_adapter,
-                                  args.three_score,
-                                  left_cigar_info,
-                                  args,
-                                  check_in_softl,
-                                  Seq(left_match).complement())
-    three_right = get_adapter_info(rightend[::-1],
-                                   args.three_adapter,
-                                   args.three_score,
-                                   right_cigar_info,
-                                   args,
-                                   check_in_softr,
-                                   right_match[::-1])
-    five_left = get_adapter_info(leftend,
-                                 args.five_adapter,
-                                 args.five_score,
-                                 left_cigar_info,
-                                 args,
-                                 check_in_softl,
-                                 left_match)
-    five_right = get_adapter_info(Seq(rightend).reverse_complement(),
-                                  args.five_adapter,
-                                  args.five_score,
-                                  right_cigar_info,
-                                  args,
-                                  check_in_softr,
-                                  Seq(right_match).reverse_complement())
+    if leftend != "no softclip":
+        three_left = get_adapter_info(Seq(leftend).complement(),
+                                      args.three_adapter,
+                                      args.three_score,
+                                      left_cigar_info,
+                                      args,
+                                      check_in_softl,
+                                      Seq(left_match).complement())
+        five_left = get_adapter_info(leftend,
+                                     args.five_adapter,
+                                     args.five_score,
+                                     left_cigar_info,
+                                     args,
+                                     check_in_softl,
+                                     left_match)
+    else:
+        three_left = (0, 0, 0, "no softclip")
+        five_left = (0, 0, 0, "no softclip")
+    if rightend != "no softclip":
+        three_right = get_adapter_info(rightend[::-1],
+                                       args.three_adapter,
+                                       args.three_score,
+                                       right_cigar_info,
+                                       args,
+                                       check_in_softr,
+                                       right_match[::-1])
+        five_right = get_adapter_info(Seq(rightend).reverse_complement(),
+                                      args.five_adapter,
+                                      args.five_score,
+                                      right_cigar_info,
+                                      args,
+                                      check_in_softr,
+                                      Seq(right_match).reverse_complement())
+    else:
+        three_right = (0, 0, 0, "no softclip")
+        five_right = (0, 0, 0, "no softclip")
     return {"l3": three_left,
             "r3": three_right,
             "l5": five_left,
@@ -314,10 +332,10 @@ def set_read_strand(summary, old_flag):
     """
     Rewrites flags into 0 for +, 16 for - and 256 for unknown
     """
-    is_l3 = summary.get("l3")[3] != "missing"
-    is_r3 = summary.get("r3")[3] != "missing"
-    is_l5 = summary.get("l5")[3] != "missing"
-    is_r5 = summary.get("r5")[3] != "missing"
+    is_l3 = summary.get("l3")[3] not in ["missing", "no softclip"]
+    is_r3 = summary.get("r3")[3] not in ["missing", "no softclip"]
+    is_l5 = summary.get("l5")[3] not in ["missing", "no softclip"]
+    is_r5 = summary.get("r5")[3] not in ["missing", "no softclip"]
     if (is_l3 or is_r5) and not (is_r3  or is_l5):
         new_flag = 16
     elif (is_r3 or is_l5) and not (is_l3 or is_r5):
