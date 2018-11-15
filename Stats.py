@@ -1,5 +1,6 @@
 import pandas as pd
 import os
+import sys
 from scipy.stats import poisson
 from argparse import ArgumentParser
 from ast import literal_eval
@@ -344,6 +345,7 @@ def intron_seq(df, args, contig):
         print("ERROR: The specified reference file does not contain contigs \
               from the references used for mapping. Supply the same reference\
               that was used for the mapping and try again.")
+        sys.exit()
     return df
 
 def contig_introns(df, args, contig):
