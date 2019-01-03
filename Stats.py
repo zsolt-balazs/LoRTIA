@@ -22,31 +22,6 @@ def get_cov(position, cov_dict):
     else:
         return 0
 
-# The following code is slow, does not work on high-coverage regions. If 
-# max_depth is set too low (2000 or so) it gives incorrect and useless results.
-# 
-#def coverage(pos, bam_file):
-#    """
-#    Uses the pysam module to determine genome coverage in a given distance from
-#    the feature position.
-#    """
-#    in_bam = bam_file
-#    bam = pysam.AlignmentFile(in_bam, "rb")
-#    coverages = []
-#    for position in pos:
-#        for pileup in bam.pileup("LT907985.2",
-#                                 position,
-#                                 position + 1,
-#                                 flag_require = 16,
-#                                 truncate = True,
-#                                 max_depth = 1000000,
-#                                 min_base_quality = 0):
-#            bases = pileup.get_query_sequences()
-#            coverage = len(bases) - bases.count("")
-#            print("position:", position,"coverage:", coverage,"/n")
-#        coverages.append(coverage)
-#    return coverages
-
 def coverage(pos_list, args, contig):
     """
     Calculates average coverages from a given distance for a list of positions
@@ -120,13 +95,13 @@ def Stats(args):
     """
     Sets argument types and runs stat functions for features.
     """
-    print("Calculating {} feature statistics...".format(args.feature))
     if not args.feature:
         args.feature = args.feature_file[-6:-4]
     if args.feature == "r5" or args.feature == "r3":
         strand = -1
     else:
         strand = 1
+    print("Calculating {} feature statistics...".format(args.feature))
     args.distance = abs(args.distance) * strand
     args.cov_sample = abs(args.cov_sample) * strand
     if os.stat(args.feature_file).st_size == 0:
