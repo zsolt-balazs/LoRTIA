@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 ###############################################################################
 ###                            SAMprocessor                                 ###
 ###                 This script handles the .sam files.                     ###
@@ -30,7 +32,7 @@ def input_sorter(in_file, prefix):
     """
     Calls the pysam sort function on the input.
     """
-    print("Sorting {}".format(in_file))
+    print("Sorting {}...".format(in_file))
     pysam.sort("-n", "-O" "SAM", "-o", "{}_temp.sam".format(prefix), in_file)
 
 # The code below was meant to run bedtools and get output line-by-line and
@@ -67,7 +69,7 @@ def coverage_counter(outbam, out_stranded_bam):
     """
     Calls del0s to create the coverage files.
     """
-    print("Counting coverage")
+    print("Counting coverage...")
     alltsv = outbam.replace("sorted.bam", "allcov.tsv")
     mintsv = outbam.replace("sorted.bam", "minuscov.tsv")
     plustsv = outbam.replace("sorted.bam", "pluscov.tsv")
@@ -79,7 +81,7 @@ def output_creator(outsam):
     """
     Uses pysam to sort and index the output and the stranded_only output files.
     """
-    print("Sorting and indexing output")
+    print("Sorting and indexing output...")
     outbam = outsam.replace(".sam", "_sorted.bam")
     out_stranded_bam = outsam.replace("out.sam", "stranded_only.bam")
     pysam.sort("-o", outbam, outsam)
@@ -215,13 +217,14 @@ def in_place_checker(alignments,
                                         pos_wo_gap(alignment, 4),
                                         "false exon")
                 break
-        for alignment in alignments:
-            if pos_wo_gap(alignment, 4) in range(ts, soft_match + 1):
-                adapter_info = (alignment[2],
-                                pos_wo_gap(alignment, 3),
-                                pos_wo_gap(alignment, 4),
-                                "potential template switching")
-                break
+            else:
+                for alignment in alignments:
+                    if pos_wo_gap(alignment, 4) in range(ts, soft_match + 1):
+                        adapter_info = (alignment[2],
+                                        pos_wo_gap(alignment, 3),
+                                        pos_wo_gap(alignment, 4),
+                                        "potential template switching")
+                        break
     return adapter_info
 
 def get_adapter_info(sequence,

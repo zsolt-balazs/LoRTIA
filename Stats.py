@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import pandas as pd
 import os
 import sys
@@ -144,7 +146,7 @@ def pick_from_greatests(dictionary, wobble):
     determined by the wobble size. Whether the left or the rightmost positions
     are desired can be set by the user, and the list is ordered accordingly.
     """
-    previous = 0
+    previous = -100
     is_picked_list = []
     for pos, is_greatest in dictionary.items():
         is_picked = False
@@ -243,22 +245,22 @@ def check_consensus(left2, right2):
     consensus_list = []
     strand_list = []
     for i in range(len(left2)):
-        if left2[i] == "GT" and right2[i] == "AG":
+        if left2[i].lower() == "gt" and right2[i].lower() == "ag":
             consensus_list.append("GT/AG")
             strand_list.append("+")
-        elif left2[i] == "GC" and right2[i] == "AG":
+        elif left2[i].lower() == "gc" and right2[i].lower() == "ag":
             consensus_list.append("GC/AG")
             strand_list.append("+")
-        elif left2[i] == "AT" and right2[i] == "AC":
+        elif left2[i].lower() == "at" and right2[i].lower() == "ac":
             consensus_list.append("AT/AC")
             strand_list.append("+")
-        elif left2[i] == "CT" and right2[i] == "AC":
+        elif left2[i].lower() == "ct" and right2[i].lower() == "ac":
             consensus_list.append("GT/AG")
             strand_list.append("-")
-        elif left2[i] == "CT" and right2[i] == "GC":
+        elif left2[i].lower() == "ct" and right2[i].lower() == "gc":
             consensus_list.append("GC/AG")        
             strand_list.append("-")
-        elif left2[i] == "GT" and right2[i] == "AT":
+        elif left2[i].lower() == "gt" and right2[i].lower() == "at":
             consensus_list.append("AT/AC")        
             strand_list.append("-")
         else:
@@ -367,6 +369,8 @@ def contig_introns(df, args, contig):
     df["is_qualified"] = check_if_qualified(df, args.minimum, args.ratio)
     df["consensus"], df["strand"] = check_consensus(list(df["left2"]),
                                                     list(df["right2"]))
+    args.distance = args.distance * -1
+    args.cov_sample = args.cov_sample * -1
     return df
 
 

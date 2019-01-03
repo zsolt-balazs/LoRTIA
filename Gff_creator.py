@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 from argparse import ArgumentParser
 import pandas as pd
 
@@ -74,8 +76,12 @@ def Gff_creator(args):
         line_end(dfpos, new_df, args.feature, "+")
         line_end(dfneg, new_df, args.feature, "-")
         if args.significance == "poisson":
-            alpha = 0.05 / len(new_df)
-            new_df = new_df.loc[new_df["info"] < alpha]
+            try:
+                alpha = 0.05 / len(new_df)
+                new_df = new_df.loc[new_df["info"] < alpha]
+            except:
+                print("WARNING! There were no significant {} features in this\
+                      sample.".fomat(args.feature))
     new_df = new_df.sort_values(by=['end'])
     new_df = new_df.sort_values(by=['start'])
     new_df = new_df.sort_values(by=['contig'])
