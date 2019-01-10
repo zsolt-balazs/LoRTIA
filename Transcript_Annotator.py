@@ -36,7 +36,7 @@ def intron_gff_iterator(df, intron, intron_found, real_introns, read, args):
             break
         if (not intron_found) and ((intron[1] - intron[0]) > args.gap):
             read.set_tag("ga", str(intron), "Z")
-    return real_introns, intron_found
+    return real_introns, intron_found, read
 
 def read_introns(df, read, introns, args):
     """
@@ -45,20 +45,20 @@ def read_introns(df, read, introns, args):
     intron_found = False
     real_introns= ()
     if isinstance(introns[0], int):
-        real_introns, intron_found = intron_gff_iterator(df,
-                                                         introns,
-                                                         intron_found,
-                                                         real_introns,
-                                                         read,
-                                                         args)
+        real_introns, intron_found, read = intron_gff_iterator(df,
+                                                               introns,
+                                                               intron_found,
+                                                               real_introns,
+                                                               read,
+                                                               args)
     else:
         for intron in introns:
-            real_introns, intron_found = intron_gff_iterator(df,
-                                                             intron,
-                                                             intron_found,
-                                                             real_introns,
-                                                             read,
-                                                             args)
+            real_introns, intron_found, read = intron_gff_iterator(df,
+                                                                   intron,
+                                                                   intron_found,
+                                                                   real_introns,
+                                                                   read,
+                                                                   args)
     if intron_found:
         read.set_tag("in", str(real_introns), "Z")
     else:
