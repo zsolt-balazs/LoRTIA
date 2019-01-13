@@ -50,10 +50,10 @@ def ends(gffs, summary, args, prefixlist):
                         is_picked = False
                     is_picked_list.append(is_picked)
             stranddf["is_picked"] = is_picked_list
-            chart = stranddf.loc[stranddf.is_picked == True]
+            chart = stranddf.loc[stranddf.is_picked == True].copy()
             chart.drop_duplicates(subset=["start", "strand"], inplace=True)
             for prefix in prefixlist:
-                method = prefix.split("/")[-2]
+                method = prefix.split("/")[-1]
                 df = stranddf.loc[stranddf.method == method]
                 got_list = []
                 for index, row in chart.iterrows():
@@ -81,7 +81,7 @@ def main():
     for prefix in prefixlist:
         d = pd.read_csv(prefix + "_" + args.feature + ".gff3", sep = "\t", 
                         names = col)
-        d["method"] = prefix.split("/")[-2]
+        d["method"] = prefix.split("/")[-1]
         gffs = pd.concat([gffs, d], ignore_index=True)
     summary = pd.DataFrame()
     if args.feature != "intron":
@@ -121,7 +121,7 @@ def parsing():
                         'intron' for introns, 'tes' for transcriptional end\
                         sites and 'tss' for transcriptional start sites.",
                         metavar="feature")
-    parser.add_argument("-w", "--wobble",
+    parser.add_argument("-b", "--wobble",
                         dest="wobble",
                         help="The wobble that is to be used to merge TSS and \
                         TES feature positions. The default is +/- 10nt.",

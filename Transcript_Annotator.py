@@ -92,7 +92,7 @@ def bam_iterator(bam, tr_dict, tss_gff, tes_gff, intron_gff, outbam, args):
             or read.get_tag(tes).split(",")[3] == "out of place"):
             df = tss_gff.loc[(tss_gff["strand"] == strand)
                              & (tss_gff["contig"] == contig)
-                             & (tss_gff["start"] >= tss_pos - args.wobble - 1)]
+                             & (tss_gff["start"] >= tss_pos - args.wobble - 1)].copy()
             read, tss_found = read_ends(df, read, tss_pos, args, "tss")
         #GET THE TES
         if (read.get_tag(tes).split(",")[3] == "correct" 
@@ -100,13 +100,15 @@ def bam_iterator(bam, tr_dict, tss_gff, tes_gff, intron_gff, outbam, args):
             or read.get_tag(tes).split(",")[3] == "out of place"):
             df = tes_gff.loc[(tes_gff["strand"] == strand) 
                              & (tes_gff["contig"] == contig) 
-                             & (tes_gff["start"] >= tes_pos - args.wobble - 1)]
+                             & (tes_gff["start"] >= tes_pos - args.wobble - 1)].copy()
             read, tes_found = read_ends(df, read, tes_pos, args, "tes")
         #GET THE INTRON
         if read.get_tag("in"):
             introns = literal_eval(read.get_tag("in"))
             df = intron_gff.loc[(intron_gff["strand"] == strand)
-                                & (intron_gff["contig"] == contig)]
+                                & (intron_gff["contig"] == contig)
+                                & (intron_gff["start"] > read.reference_start)
+                                & (intron_gff["end"] < read.reference_end)].copy()
             read, intron_found = read_introns(df, read, introns, args)
         else:
             intron_found = False
@@ -141,14 +143,13 @@ def create_gff(tr_dict, tr_gff, args):
     """
     for key, value in tr_dict.items():
         if value >= args.mintr_count:
-
             if len(key) == 4:
                 contig, strand, start, end = key
                 l = len(tr_gff)
                 if strand == "+":
                     tr_gff.loc[l] = [contig,
                                      "LoRTIA",
-                                     "exon",
+                                     "mRNA",
                                      start,
                                      end,
                                      value,
@@ -158,7 +159,7 @@ def create_gff(tr_dict, tr_gff, args):
                 else:
                     tr_gff.loc[l] = [contig,
                                      "LoRTIA",
-                                     "exon",
+                                     "mRNA",
                                      end,
                                      start,
                                      value,
@@ -171,6 +172,15 @@ def create_gff(tr_dict, tr_gff, args):
                 intron = literal_eval(intron)
                 if strand == "+":
                     tr_gff.loc[l] = [contig,
+                                     "LoRTIA",
+                                     "mRNA",
+                                     start,
+                                     end,
+                                     value,
+                                     strand,
+                                     ".",
+                                     "ID=" + str(key)]
+                    tr_gff.loc[l+1] = [contig,
                                      "LoRTIA",
                                      "exon",
                                      start,
@@ -203,6 +213,15 @@ def create_gff(tr_dict, tr_gff, args):
                                      "Parent=" + str(key)]
                 else:
                     tr_gff.loc[l] = [contig,
+                                     "LoRTIA",
+                                     "mRNA",
+                                     start,
+                                     end,
+                                     value,
+                                     strand,
+                                     ".",
+                                     "ID=" + str(key)]
+                    tr_gff.loc[l+1] = [contig,
                                      "LoRTIA",
                                      "exon",
                                      end,
@@ -265,7 +284,6 @@ def annotate_tr(args):
     bam_iterator(bam, tr_dict, tss_gff, tes_gff, intron_gff, outbam, args)
     pysam.index(args.output_prefix + ".bam")
     tr_gff = pd.DataFrame(columns=cols)
-    print(tr_dict)
     create_gff(tr_dict, tr_gff, args)
 
 

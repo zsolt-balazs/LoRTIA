@@ -28,7 +28,7 @@ def coverage(pos_list, args, contig):
     """
     cols = ["contig", "pos", "count"]
     cov = pd.read_csv(args.coverage_file, sep = "\t", names= cols)
-    cov = cov.loc[cov.contig == contig]
+    cov = cov.loc[cov.contig == contig].copy()
     cov["pos"] = cov["pos"].astype(int)
     cov["count"] = cov["count"].astype(int)
     cov.set_index("pos", drop=True, inplace=True)
@@ -72,7 +72,7 @@ def find_features(args):
     contig_set = list(set(df.contig))
     new_df = ()
     for contig in contig_set:
-        current_df = df.loc[df.contig == contig]
+        current_df = df.loc[df.contig == contig].copy()
         if args.feature == "in":
             current_df = contig_introns(current_df, args, contig)
         else:
@@ -253,7 +253,7 @@ def get_score(scores, args):
     pos = args.shs_for_ts + 1
     rscores = []
     score = 0
-    while pos <= 2*args.shs_for_ts:
+    while pos <= 2 * args.shs_for_ts:
         score += scores[pos - 1]
         rscores.append(score)
         pos += 1
