@@ -34,8 +34,8 @@ def intron_gff_iterator(df, intron, intron_found, real_introns, read, args):
             intron_found = True
             real_introns += intron
             break
-        if (not intron_found) and ((intron[1] - intron[0]) > args.gap):
-            read.set_tag("ga", str(intron), "Z")
+    if (not intron_found) and ((intron[1] - intron[0]) > args.gap):
+        read.set_tag("ga", str(intron), "Z")
     return real_introns, intron_found, read
 
 def read_introns(df, read, introns, args):
@@ -141,8 +141,15 @@ def create_gff(tr_dict, tr_gff, args):
     """
     Generates the tr.gff3 file based on tr_dict
     """
+    c = 1
+    PAR = "Parent="
+    ID = "ID="
+    TRID = ";transcript_id="
+    x = 1
+    exon = "id" + str(x)
     for key, value in tr_dict.items():
         if value >= args.mintr_count:
+            tr = "tr" + str(c)
             if len(key) == 4:
                 contig, strand, start, end = key
                 l = len(tr_gff)
@@ -155,7 +162,7 @@ def create_gff(tr_dict, tr_gff, args):
                                      value,
                                      strand,
                                      ".",
-                                     "ID=" + str(key)]
+                                     ID + tr + TRID + tr]
                 else:
                     tr_gff.loc[l] = [contig,
                                      "LoRTIA",
@@ -165,7 +172,7 @@ def create_gff(tr_dict, tr_gff, args):
                                      value,
                                      strand,
                                      ".",
-                                     "ID=" + str(key)]
+                                     ID + tr + TRID + tr]
             elif len(key) == 5:
                 contig, strand, start, intron, end = key
                 l = len(tr_gff)
@@ -179,16 +186,18 @@ def create_gff(tr_dict, tr_gff, args):
                                      value,
                                      strand,
                                      ".",
-                                     "ID=" + str(key)]
+                                     ID + tr + TRID + tr]
                     tr_gff.loc[l+1] = [contig,
-                                     "LoRTIA",
-                                     "exon",
-                                     start,
-                                     intron[0],
-                                     value,
-                                     strand,
-                                     ".",
-                                     "Parent=" + str(key)]
+                                       "LoRTIA",
+                                       "exon",
+                                       start,
+                                       intron[0],
+                                       value,
+                                       strand,
+                                       ".",
+                                       ID + exon + PAR + tr + TRID + tr]
+                    x += 1
+                    exon = "id" + str(x)
                     if len(intron) > 2:
                         for i in range(1, len(intron)-1)[::2]:
                             l = len(tr_gff)
@@ -200,7 +209,9 @@ def create_gff(tr_dict, tr_gff, args):
                                              value,
                                              strand,
                                              ".",
-                                             "Parent=" + str(key)]
+                                             ID + exon + PAR + tr + TRID + tr]
+                            x += 1
+                            exon = "id" + str(x)
                     l = len(tr_gff)
                     tr_gff.loc[l] = [contig,
                                      "LoRTIA",
@@ -210,26 +221,30 @@ def create_gff(tr_dict, tr_gff, args):
                                      value,
                                      strand,
                                      ".",
-                                     "Parent=" + str(key)]
+                                     ID + exon + PAR + tr + TRID + tr]
+                    x += 1
+                    exon = "id" + str(x)
                 else:
                     tr_gff.loc[l] = [contig,
                                      "LoRTIA",
                                      "mRNA",
+                                     end,
                                      start,
-                                     end,
                                      value,
                                      strand,
                                      ".",
-                                     "ID=" + str(key)]
+                                     ID + tr + TRID + tr]
                     tr_gff.loc[l+1] = [contig,
-                                     "LoRTIA",
-                                     "exon",
-                                     end,
-                                     intron[0],
-                                     value,
-                                     strand,
-                                     ".",
-                                     "Parent=" + str(key)]
+                                       "LoRTIA",
+                                       "exon",
+                                       end,
+                                       intron[0],
+                                       value,
+                                       strand,
+                                       ".",
+                                       ID + exon + PAR + tr + TRID + tr]
+                    x += 1
+                    exon = "id" + str(x)
                     if len(intron) > 2:
                         for i in range(1, len(intron)-1)[::2]:
                             l = len(tr_gff)
@@ -241,7 +256,9 @@ def create_gff(tr_dict, tr_gff, args):
                                              value,
                                              strand,
                                              ".",
-                                             "Parent=" + str(key)]
+                                             ID + exon + PAR + tr + TRID + tr]
+                            x += 1
+                            exon = "id" + str(x)
                     l = len(tr_gff)
                     tr_gff.loc[l] = [contig,
                                      "LoRTIA",
@@ -251,12 +268,36 @@ def create_gff(tr_dict, tr_gff, args):
                                      value,
                                      strand,
                                      ".",
-                                     "Parent=" + str(key)]
-
+                                     ID + exon + PAR + tr + TRID + tr]
+                    x += 1
+                    exon = "id" + str(x)
+            tr_dict[key] = (tr, value)
+            c += 1
+        else:
+            tr_dict[key] = ("not_qualified", value)
+### The following aggregates Parents and counts to exons. ###
+#    exon = tr_gff.loc[tr_gff.feature == "exon"].copy()
+#    other = tr_gff.loc[tr_gff.feature != "exon"].copy()
+#    joiner = lambda a: ",".join(a)
+#    g_list = ["contig", "source", "feature", "start", "end", "strand", "frame"]
+#    agg_dict = {"score": sum, "info": joiner}
+#    exon = exon.groupby(by= g_list).agg(agg_dict).reset_index()
+#    exon["info"] = [elem.replace("Parent=", "") for elem in exon["info"]]
+#    exon["info"] = ["".join(("Parent=", elem)) for elem in exon["info"]]
+#    tr_gff = pd.concat([other, exon], ignore_index=True, sort=False)
+#
+    tr_gff = tr_gff.sort_values(by = ["contig" ,"start", "end"])
     tr_gff.to_csv(args.output_prefix + ".gff3",
                   sep="\t",
-                  index = False,
-                  header = False)
+                  index=False,
+                  header=False)
+    
+    tr_tsv = pd.DataFrame.from_dict(tr_dict, columns=['key', 'value'])
+    tr_tsv = tr_tsv.drop('value', axis=1).join(pd.DataFrame(
+                         tr_tsv['value'].values.tolist()))
+    tr_tsv.columns = ['transcript', 'transcript_id', 'count']
+    tr_tsv.to_csv(args.output_prefix + ".tsv", sep="\t", index=False)
+    
 
 def annotate_tr(args):
     """
@@ -284,6 +325,7 @@ def annotate_tr(args):
     bam_iterator(bam, tr_dict, tss_gff, tes_gff, intron_gff, outbam, args)
     pysam.index(args.output_prefix + ".bam")
     tr_gff = pd.DataFrame(columns=cols)
+    print("Generating gff...")
     create_gff(tr_dict, tr_gff, args)
 
 
