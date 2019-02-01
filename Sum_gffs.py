@@ -91,12 +91,13 @@ def main():
         summary.drop_duplicates(subset=["start", "end", "strand"], 
                                 inplace=True)
         for prefix in prefixlist:
-                method = prefix.split("/")[-2]
-                df = gffs.loc[gffs.method == method]
+                method = prefix.split("/")[-1]
+                df = gffs.loc[gffs.method == method].copy()
                 got_list = []
                 for index, row in summary.iterrows():
                     got = df.loc[(df.start == row["start"]) & (df.end == row[
-                                 "end"])]["score"].values
+                                 "end"]) & (df.contig == row["contig"])
+                                 ]["score"].values
                     if got:
                         got = got[0]
                     else:

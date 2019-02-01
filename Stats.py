@@ -486,16 +486,18 @@ def parsing():
                         metavar="[int]")
     parser.add_argument("-t", "--ratio",
                         dest = "ratio",
-                        help = "The minimal ratio of the coverage  to be accepted.",
+                        help = "The minimal ratio of the coverage that a \
+                        feature has to reach to be accepted. The default value\
+                        is 0.001.",
                         type=float,
                         default=0.001,
                         metavar="[float]")
     parser.add_argument("-d", "--distance",
                         dest="distance",
-                        help="The distance from the feature position where coverage \
-                        should be calculated. The default value is 15. A positive value\
-                        should be given, the inward direction is calculated by the \
-                        program automatically.",
+                        help="The distance from the feature position where \
+                        coverage should be calculated. The default value is \
+                        15. A positive value should be given, the inward \
+                        direction is calculated by the program automatically.",
                         type=int,
                         default=25,
                         metavar="[integer]")

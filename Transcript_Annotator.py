@@ -142,7 +142,7 @@ def create_gff(tr_dict, tr_gff, args):
     Generates the tr.gff3 file based on tr_dict
     """
     c = 1
-    PAR = "Parent="
+    PAR = ";Parent="
     ID = "ID="
     TRID = ";transcript_id="
     x = 1
@@ -291,12 +291,8 @@ def create_gff(tr_dict, tr_gff, args):
                   sep="\t",
                   index=False,
                   header=False)
-    
-    tr_tsv = pd.DataFrame.from_dict(tr_dict, columns=['key', 'value'])
-    tr_tsv = tr_tsv.drop('value', axis=1).join(pd.DataFrame(
-                         tr_tsv['value'].values.tolist()))
-    tr_tsv.columns = ['transcript', 'transcript_id', 'count']
-    tr_tsv.to_csv(args.output_prefix + ".tsv", sep="\t", index=False)
+    tr_tsv = pd.DataFrame.from_dict(tr_dict, orient="index")
+    tr_tsv.to_csv(args.output_prefix + ".tsv", sep="\t", header=False)
     
 
 def annotate_tr(args):

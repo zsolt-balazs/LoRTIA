@@ -756,10 +756,10 @@ def parsing():
                         the soft clip where the adapter sequence is searched \
                         for. This lets adapters be discovered even if they \
                         resemble some genomic segments and therefore align to \
-                        the genome. The default is 5.",
+                        the genome. The default is 10.",
                         type=int,
                         metavar="[integer]",
-                        default=5)
+                        default=10)
     parser.add_argument("--check_from_alignment", 
                         dest="check_from_alignment",
                         help="The maximum distance of the adapter from the \
