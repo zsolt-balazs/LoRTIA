@@ -81,7 +81,7 @@ def Gff_creator(args):
                 new_df = new_df.loc[new_df["info"] < alpha]
             except:
                 print("WARNING! There were no significant {} features in this\
-                      sample.".fomat(args.feature))
+                      sample.".format(args.feature))
     new_df = new_df.sort_values(by=['end'])
     new_df = new_df.sort_values(by=['start'])
     new_df = new_df.sort_values(by=['contig'])
