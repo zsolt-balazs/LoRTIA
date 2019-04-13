@@ -98,12 +98,12 @@ def Stats(args):
     if not args.feature:
         args.feature = args.feature_file[-6:-4]
     if args.feature == "r5" or args.feature == "r3":
-        strand = -1
+        multiplier = -1
     else:
-        strand = 1
+        multiplier = 1
     print("Calculating {} feature statistics...".format(args.feature))
-    args.distance = abs(args.distance) * strand
-    args.cov_sample = abs(args.cov_sample) * strand
+    args.distance = abs(args.distance) * multiplier
+    args.cov_sample = abs(args.cov_sample) * multiplier
     if os.stat(args.feature_file).st_size == 0:
         print("Feature file {} is empty. There is nothing to do here.".format(
               args.feature_file))
@@ -499,7 +499,7 @@ def parsing():
                         15. A positive value should be given, the inward \
                         direction is calculated by the program automatically.",
                         type=int,
-                        default=25,
+                        default=15,
                         metavar="[integer]")
     parser.add_argument("-s", "--cov_sample",
                         dest="cov_sample",

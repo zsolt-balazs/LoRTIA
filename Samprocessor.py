@@ -190,7 +190,7 @@ def in_place_checker(alignments,
                     pos_wo_gap(alignments[0], 4),
                     "out of place")
     for alignment in alignments:
-        if  pos_wo_gap(alignment, 4) in range(check_in_soft 
+        if pos_wo_gap(alignment, 4) in range(check_in_soft 
                                               - args.check_from_alignment,
                                               soft_match + 1):
             adapter_info = (alignment[2],

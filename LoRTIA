@@ -241,8 +241,9 @@ parser.add_argument("--rare_intron",
                     default=0.05,
                     metavar="[float]")
 parser.add_argument("-t", "--ratio",
-                    dest ="ratio",
-                    help="The minimal ratio of the coverage to be accepted.",
+                    dest = "ratio",
+                    help = "The minimal ratio of the coverage that a feature \
+                    has to reach to be accepted. The default value is 0.001.",
                     type=float,
                     default=0.001,
                     metavar="[float]")
@@ -253,7 +254,7 @@ parser.add_argument("-d", "--distance",
                     A positive value should be given, the inward direction is \
                     calculated by the program automatically.",
                     type=int,
-                    default = 25,
+                    default = 15,
                     metavar="[integer]")
 parser.add_argument("--cov_sample",
                     dest="cov_sample",
