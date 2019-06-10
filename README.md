@@ -41,7 +41,7 @@ If you prepared your library using standard [Nanopore cDNA-Seq adapters], type t
 ```sh
 LoRTIA -5 TGCCATTAGGCCGGG --five_score 16 --check_in_soft 15 -3 AAAAAAAAAAAAAAA --three_score 16 -s poisson -f True /path/to/alignments.sam /path/to/output_folder /path/to/reference.fasta
 ```
-If you prepared your library with a different set of adapters, you will have to specify those, when running the program.
+If you prepared your library with a different set of adapters, you will have to specify those when running the program.
 
 For more details, read the [Wiki].
 
