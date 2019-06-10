@@ -41,7 +41,7 @@ If you prepared your library using standard [Nanopore cDNA-Seq adapters], type t
 LoRTIA -5 TGCCATTAGGCCGGG --five_score 16 --check_in_soft 15 -3 AAAAAAAAAAAAAAA --three_score 16 -s poisson -f True /path/to/alignments.sam /path/to/output_folder /path/to/reference.fasta
 ```
 If you prepared your library with a different set of adapters, you will have to specify those, when running the program.
-For more details, read the Wiki.
+For more details, read the [Wiki].
 
 ## <a name="credits"></a>Credits
 The LoRTIA toolkit is developed by [Zsolt Balázs]. Discussions and earlier work with Attila Szűcs (University of Szeged) contributed a lot of ideas to the implementation the toolkit. The early code was commented on by Tibor Nagy (University of Debrecen). Special thanks to the Department of Medical Biology at the University of Szeged for the early testing feedbacks.
@@ -55,4 +55,5 @@ The LoRTIA toolkit is developed by [Zsolt Balázs]. Discussions and earlier work
 [Lexogen Telo Prime cap selection kit]: https://www.lexogen.com/wp-content/uploads/2015/03/013PF032V0100_TeloPrime.pdf
 [PacBio Isoseq]: https://www.pacb.com/blog/introduction-of-the-iso-seq-method-state-of-the-art-for-full-length-transcriptome-sequencing/
 [Nanopore cDNA-Seq adapters]: https://nanoporetech.com/resource-centre/guide-cdna-sequencing-oxford-nanopore
+[Wiki]: https://github.com/zsolt-balazs/LoRTIA/wiki
 [Zsolt Balázs]: https://github.com/zsolt-balazs/
