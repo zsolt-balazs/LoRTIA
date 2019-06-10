@@ -1,5 +1,6 @@
 # LoRTIA - Long-read RNA-Seq Transcript Isoform Annotator toolkit
 version 0.9.9
+
 The LoRTIA toolkit annotates transcript features such as transcriptional start sites (TSS), transcriptional end sites (TES), introns and transcript isoforms based on long-read RNA sequencing (direct RNA-Seq and cDNA-Seq) data. The toolkit expects `SAM` or `BAM` files as input and produces `GFF` files as well as other processed files as outputs. The sequencing reads can stem from any long-read sequencing platform (both Nanopore and PacBio reads are accepted). As long as the reads contain adapters which mark the two ends of the full-length transcripts, a complete isoform annotation is possible. The `SAM` or `BAM` files can be produced by any mapper, however when mapping with [minimap2], either run minimap2 with the `-Y` option or filter out secondary alignments, before using the LoRTIA toolkit. The toolkit was developed to be run in UNIX environments.
 
 ## Contents
