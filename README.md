@@ -23,6 +23,7 @@ Make sure you have all the dependencies and you will be able to run the program.
 - [Biopython] (tested Release 1.73)
 - [pysam] (tested v. 0.15.0)
 - [scipy] (tested v. 1.2.2)
+
 If you have your dependencies installed, and also added LoRTIA to your `PATH`, then typing `LoRTIA -h` should show you the help menu.
 
 ## <a name="usage"></a>Usage
