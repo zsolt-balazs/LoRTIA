@@ -14,6 +14,8 @@ The LoRTIA toolkit annotates transcript features such as transcriptional start s
 Clone the repository.
 ```sh
 git clone https://github.com/zsolt-balazs/LoRTIA
+cd LoRTIA
+chmod 755 LoRTIA
 ```
 Make sure you have all the dependencies and you will be able to run the program.
 
