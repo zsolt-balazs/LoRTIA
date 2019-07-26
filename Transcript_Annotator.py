@@ -89,7 +89,7 @@ def bam_iterator(bam, tr_dict, tss_gff, tes_gff, intron_gff, outbam, args):
         #GET THE TSS
         if (read.get_tag(tss).split(",")[3] == "correct" 
             or read.get_tag(tss).split(",")[3] =="potential template switching" 
-            or read.get_tag(tes).split(",")[3] == "out of place"):
+            or read.get_tag(tss).split(",")[3] == "out of place"):
             df = tss_gff.loc[(tss_gff["strand"] == strand)
                              & (tss_gff["contig"] == contig)
                              & (tss_gff["start"] >= tss_pos - args.wobble - 1)].copy()
