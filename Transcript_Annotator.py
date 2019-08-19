@@ -89,7 +89,7 @@ def bam_iterator(bam, tr_dict, tss_gff, tes_gff, intron_gff, outbam, args):
         #GET THE TSS
         if (read.get_tag(tss).split(",")[3] == "correct" 
             or read.get_tag(tss).split(",")[3] =="potential template switching" 
-            or read.get_tag(tss).split(",")[3] == "out of place"):
+            or read.get_tag(tes).split(",")[3] == "out of place"):
             df = tss_gff.loc[(tss_gff["strand"] == strand)
                              & (tss_gff["contig"] == contig)
                              & (tss_gff["start"] >= tss_pos - args.wobble - 1)].copy()
@@ -146,7 +146,7 @@ def create_gff(tr_dict, tr_gff, args):
     ID = "ID="
     TRID = ";transcript_id="
     x = 1
-    exon = "id" + str(x)
+    exon = "exon" + str(x)
     for key, value in tr_dict.items():
         if value >= args.mintr_count:
             tr = "tr" + str(c)
@@ -163,6 +163,15 @@ def create_gff(tr_dict, tr_gff, args):
                                      strand,
                                      ".",
                                      ID + tr + TRID + tr]
+                    tr_gff.loc[l+1] = [contig,
+                                     "LoRTIA",
+                                     "mRNA",
+                                     start,
+                                     end,
+                                     value,
+                                     strand,
+                                     ".",
+                                     ID + exon + PAR + tr + TRID + tr]
                 else:
                     tr_gff.loc[l] = [contig,
                                      "LoRTIA",
@@ -173,6 +182,15 @@ def create_gff(tr_dict, tr_gff, args):
                                      strand,
                                      ".",
                                      ID + tr + TRID + tr]
+                    tr_gff.loc[l+1] = [contig,
+                                     "LoRTIA",
+                                     "mRNA",
+                                     end,
+                                     start,
+                                     value,
+                                     strand,
+                                     ".",
+                                     ID + exon + PAR + tr + TRID + tr]
             elif len(key) == 5:
                 contig, strand, start, intron, end = key
                 l = len(tr_gff)
@@ -275,13 +293,14 @@ def create_gff(tr_dict, tr_gff, args):
             c += 1
         else:
             tr_dict[key] = ("not_qualified", value)
-### The following aggregates Parents and counts to exons. ###
+
+############ The following aggregates parents and counts to exons. ############
 #    exon = tr_gff.loc[tr_gff.feature == "exon"].copy()
 #    other = tr_gff.loc[tr_gff.feature != "exon"].copy()
 #    joiner = lambda a: ",".join(a)
-#    g_list = ["contig", "source", "feature", "start", "end", "strand", "frame"]
+#    glist = ["contig", "source", "feature", "start", "end", "strand", "frame"]
 #    agg_dict = {"score": sum, "info": joiner}
-#    exon = exon.groupby(by= g_list).agg(agg_dict).reset_index()
+#    exon = exon.groupby(by= glist).agg(agg_dict).reset_index()
 #    exon["info"] = [elem.replace("Parent=", "") for elem in exon["info"]]
 #    exon["info"] = ["".join(("Parent=", elem)) for elem in exon["info"]]
 #    tr_gff = pd.concat([other, exon], ignore_index=True, sort=False)
@@ -337,7 +356,7 @@ def parsing():
     """
     This part handles the commandline arguments
     """
-    parser = ArgumentParser(description="This is the first module of LoRTIA:\
+    parser = ArgumentParser(description="This is the last module of LoRTIA:\
                             a Long-read RNA-Seq Transcript Isofom Annotator")
     parser.add_argument("in_bam",
                         help="Input file. Both .sam and .bam files are\
@@ -368,10 +387,11 @@ def parsing():
                         which it still constitutes as a transcript. Gaps are \
                         deletions which are not found in the gff of accepted \
                         introns. Such gaps can be present in chimeric reads \
-                        which are often artefactual. The default value is \
-                        1000.",
+                        which are often artefactual. Only the introns as \
+                        defined by the mapper count, deletions do not. The \
+                        default value is 1.",
                         type=int,
-                        default=1000,
+                        default=1,
                         metavar="[integer]")
     parser.add_argument("--mintr_count",
                         dest="mintr_count",
