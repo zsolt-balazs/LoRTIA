@@ -165,7 +165,7 @@ def create_gff(tr_dict, tr_gff, args):
                                      ID + tr + TRID + tr]
                     tr_gff.loc[l+1] = [contig,
                                      "LoRTIA",
-                                     "mRNA",
+                                     "exon",
                                      start,
                                      end,
                                      value,
@@ -184,7 +184,7 @@ def create_gff(tr_dict, tr_gff, args):
                                      ID + tr + TRID + tr]
                     tr_gff.loc[l+1] = [contig,
                                      "LoRTIA",
-                                     "mRNA",
+                                     "exon",
                                      end,
                                      start,
                                      value,
